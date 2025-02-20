@@ -5,7 +5,7 @@ import json
 from .models import AdRecord, AdAnalytics
 from datetime import datetime
 from django.utils import timezone
-
+from .serializers import AdAnalyticsSerializer, AdRecordSerializer
 
 
 class AddAnalyticsData(APIView):
@@ -47,8 +47,13 @@ class AddAnalyticsData(APIView):
                 print(e.__traceback__.tb_lineno)
                 return HttpResponse(f"Invalid data format {e} line number {e.__traceback__.tb_lineno}", status=400)
 
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import AdRecord
+from .serializers import AdRecordSerializer
 
 class GetAnalyticsData(APIView):
     def get(self, request):
-        # branch_id    = request.query_params.get('shop_id')
-        return HttpResponse("Welcome to the Analytics Data API! GET api")
+        ad_details = AdRecord.objects.prefetch_related("ad_analytics").all()  # Prefetch related data
+        serializer = AdRecordSerializer(ad_details, many=True)
+        return Response(serializer.data)  # Using DRF's Response for proper formatting
